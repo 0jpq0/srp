@@ -12,3 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79cc81a573a97c74ebb11dbd9863fbb9, type: 3}
   m_Name: Custom Srp Pipline Asset
   m_EditorClassIdentifier: 
+  m_useDynamicBatching: 0
+  m_useGPUInstancing: 1
+  m_useSRPBatcher: 1
