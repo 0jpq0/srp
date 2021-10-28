@@ -29,7 +29,7 @@ namespace CustomRP
     const string SampleName = BufferName;
 #endif
 
-        public void Render(ref ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing)
+        public void Render(ref ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing, ShadowSettings shadowSettings)
         {
             m_ctx = context;
             m_camera = camera;
@@ -37,14 +37,17 @@ namespace CustomRP
             PrepareBuffer();
             PrepareForSceneWindow();
 
-            if (!Cull())
+            if (!Cull(shadowSettings.MaxDistance))
                 return;
-
+            m_cmdBuffer.BeginSample(SampleName);
+            ExecuteBuffer();
+            m_lighting.Setup(ref context, ref m_cullingResults, shadowSettings);
+            m_cmdBuffer.EndSample(SampleName);
             Setup();
-            m_lighting.Setup(ref context, ref m_cullingResults);
             DrawVisibleGeometry(useDynamicBatching, useGPUInstancing);
             DrawUnsupportedShaders();
             DrawGizmos();
+            m_lighting.Cleanup(ref context);
             Submit();
         }
 
@@ -55,11 +58,11 @@ namespace CustomRP
 
 
 
-        bool Cull()
+        bool Cull(float maxShadowDistance)
         {
             if (!m_camera.TryGetCullingParameters(out var p))
                 return false;
-
+            p.shadowDistance = Mathf.Min(m_camera.farClipPlane, maxShadowDistance);
             m_cullingResults = m_ctx.Cull(ref p);
             return true;
         }

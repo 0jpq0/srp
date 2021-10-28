@@ -17,20 +17,22 @@ namespace CustomRP
 
         bool m_useDynamicBatching;
         bool m_useGPUInstancing;
+        ShadowSettings m_shadowSettings;
 
-        public CustomRenderPipline(bool useDynamicBatching, bool useGPUInstancing, bool useSRPBatcher)
+        public CustomRenderPipline(bool useDynamicBatching, bool useGPUInstancing, bool useSRPBatcher, ShadowSettings shadowSettings)
         {
             m_useDynamicBatching = useDynamicBatching;
             m_useGPUInstancing = useGPUInstancing;
 
             GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
             GraphicsSettings.lightsUseLinearIntensity = true;
+            m_shadowSettings = shadowSettings;
         }
 
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
             foreach (var camera in cameras)
-                m_renderer.Render(ref context, camera, m_useDynamicBatching, m_useGPUInstancing);
+                m_renderer.Render(ref context, camera, m_useDynamicBatching, m_useGPUInstancing, m_shadowSettings);
         }
     }
 }

@@ -14,8 +14,14 @@ namespace CustomRP
 
         bool m_showPresets;
 
+        enum ShadowMode
+        {
+            On, Clip, Dither, Off
+        }
+
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
+            EditorGUI.BeginChangeCheck();
             base.OnGUI(materialEditor, properties);
 
             m_editor = materialEditor;
@@ -30,6 +36,23 @@ namespace CustomRP
                 ClipPreset();
                 FadePreset();
                 TransparentPreset();
+            }
+            
+            if (EditorGUI.EndChangeCheck())
+                SetShadowCasterPass();
+        }
+
+        void SetShadowCasterPass()
+        {
+            MaterialProperty shadows = FindProperty("_Shadows", m_properties, false);
+            if (shadows == null || shadows.hasMixedValue)
+            {
+                return;
+            }
+            bool enabled = shadows.floatValue < (float)ShadowMode.Off;
+            foreach (Material m in m_materials)
+            {
+                m.SetShaderPassEnabled("ShadowCaster", enabled);
             }
         }
 
@@ -155,6 +178,18 @@ namespace CustomRP
         bool ZWrite
         {
             set => SetProperty("_ZWrite", value ? 1f : 0f);
+        }
+
+        ShadowMode Shadows
+        {
+            set
+            {
+                if (SetProperty("_Shadows", (float)value))
+                {
+                    SetKeyword("_SHADOWS_CLIP", value == ShadowMode.Clip);
+                    SetKeyword("_SHADOWS_DITHER", value == ShadowMode.Dither);
+                }
+            }
         }
 
         RenderQueue RenderQueue
